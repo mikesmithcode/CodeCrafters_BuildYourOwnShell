@@ -11,25 +11,14 @@ REPLs, builtin commands, and more.
 **Note**: If you're viewing this repo on GitHub, head over to
 [codecrafters.io](https://codecrafters.io) to try the challenge.
 
-# Passing the first stage
+Notes
 
-The entry point for your `shell` implementation is in `src/main.rs`. Study and
-uncomment the relevant code, then run the command below to execute the tests on
-our servers:
+# The first stage
 
-```sh
-codecrafters submit
-```
-
-Time to move on to the next stage!
+1. Flushing output buffer. If you don't do this no newline char is encountered so the $ is never printed. println!() does flush but moves to a new line.
 
 # Stage 2 & beyond
 
 Note: This section is for stages 2 and beyond.
 
-1. Ensure you have `cargo (1.95)` installed locally
-1. Run `./your_program.sh` to run your program, which is implemented in
-   `src/main.rs`. This command compiles your Rust project, so it might be slow
-   the first time you run it. Subsequent runs will be fast.
-1. Run `codecrafters submit` to submit your solution to CodeCrafters. Test
-   output will be streamed to your terminal.
+1. Terminal input has \n char so need .trim() to remove it.

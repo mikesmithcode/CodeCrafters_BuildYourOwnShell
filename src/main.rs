@@ -11,7 +11,6 @@ fn main() {
     let mut cmd_buffer = String::new();
     let _ = io::stdin().read_line(&mut cmd_buffer);
     
-
     println!("{}: command not found", cmd_buffer.trim());
     
 }
