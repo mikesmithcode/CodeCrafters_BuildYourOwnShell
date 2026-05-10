@@ -1,23 +1,28 @@
-use std::io::Read;
+
 #[allow(unused_imports)]
 use std::io::{self, Write};
 
 
-fn repl(){
+fn repl()-> bool{
     print!("$ ");
     io::stdout().flush().unwrap();
 
     let mut cmd_buffer = String::new();
     let _ = io::stdin().read_line(&mut cmd_buffer);
     
-    println!("{}: command not found", cmd_buffer.trim());
+    let exit = match cmd_buffer.trim(){
+        "exit" => true,
+        _ => {println!("{}: command not found", cmd_buffer.trim());
+                false},
+    };
+    exit
 }
 
 
 fn main() {
-    // TODO: Uncomment the code below to pass the first stage
     loop{
-        repl();
+        let exit = repl();
+        if exit{break}
     }
     
     
