@@ -2,9 +2,8 @@ use std::io::Read;
 #[allow(unused_imports)]
 use std::io::{self, Write};
 
-fn main() {
-    // TODO: Uncomment the code below to pass the first stage
-    
+
+fn repl(){
     print!("$ ");
     io::stdout().flush().unwrap();
 
@@ -12,5 +11,14 @@ fn main() {
     let _ = io::stdin().read_line(&mut cmd_buffer);
     
     println!("{}: command not found", cmd_buffer.trim());
+}
+
+
+fn main() {
+    // TODO: Uncomment the code below to pass the first stage
+    loop{
+        repl();
+    }
+    
     
 }
