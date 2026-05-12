@@ -7,6 +7,7 @@ use std::path::PathBuf;
 use std::fs;
 use std::os::unix::fs::MetadataExt;
 use std::process;
+use std::os::unix::process::CommandExt;
 
 const BUILTINS: &[&str] = &["exit", "type", "echo"];
 
