@@ -1,36 +1,75 @@
 
+
 #[allow(unused_imports)]
 use std::io::{self, Write};
 
-fn echo(cmd_buffer: &str){
-    print!("{}", cmd_buffer);
+
+const BUILTINS: &[&str] = &["exit", "type", "echo"];
+
+fn is_builtin(cmd: &str)->bool{
+    BUILTINS.contains(&cmd)
 }
 
-fn not_found(cmd_buffer: String){
-    println!("{}: command not found", cmd_buffer.trim());
+enum Command{
+    Exit,
+    Echo(Vec<String>),
+    Type(String),
+    Error,
 }
 
-fn repl()-> bool{
+
+fn prompt()-> Result<Vec<String>, std::io::Error>{
     print!("$ ");
     io::stdout().flush().unwrap();
-
     let mut cmd_buffer = String::new();
     let _ = io::stdin().read_line(&mut cmd_buffer);
     
-    if cmd_buffer.trim() == "exit" {return true};
+    let input: Vec<String> = cmd_buffer.split_whitespace().map(|x| x.to_string()).collect();
+    Ok(input)
+}
 
-    // Remaining commands
-    if cmd_buffer.starts_with("echo"){echo(&cmd_buffer[5..]);}
-    else{not_found(cmd_buffer);}
+fn parse(mut buffer: Vec<String>)->Command{
+    if buffer.is_empty(){return Command::Error;}
 
-    false
+    let cmd_name = buffer.remove(0);
+
+    match cmd_name.as_str(){
+        "exit" => Command::Exit,
+        "echo" => Command::Echo(buffer),
+        "type" => Command::Type(buffer.remove(0)),
+        _ => Command::Error,
+    }
 }
 
 
+
+fn run_command(cmd: Command){
+    match cmd{
+        Command::Exit => std::process::exit(0),
+        Command::Echo(args) => println!("echo {}", args.join(" ")),
+        Command::Type(arg) => {if is_builtin(&arg)
+                                {
+                                    println!("{} is a shell builtin", arg);
+                                }
+                                else{ 
+                                    println!("{}: not found", arg)
+                                }
+                            },
+        Command::Error => println!(""),
+                        }
+
+}
+
 fn main() {
     loop{
-        let exit = repl();
-        if exit{break}
+        
+        let buffer: Vec<String> = prompt().expect("error with input");
+        let cmd = parse(buffer);
+        run_command(cmd);
+
+        
+        
+
     }
     
     
