@@ -2,7 +2,10 @@
 
 #[allow(unused_imports)]
 use std::io::{self, Write};
-
+use std::env;
+use std::path::PathBuf;
+use std::fs;
+use std::os::unix::fs::MetadataExt;
 
 const BUILTINS: &[&str] = &["exit", "type", "echo"];
 
@@ -31,7 +34,6 @@ fn prompt()-> Result<Vec<String>, std::io::Error>{
 /// Figures out which enum variant we have and adds args to variant if appropriate
 fn parse(mut buffer: Vec<String>)->Command{
     if buffer.is_empty(){return Command::Error(String::new());}
-    
 
     let cmd_name = buffer.remove(0);
 
@@ -48,6 +50,38 @@ fn parse(mut buffer: Vec<String>)->Command{
 }
 
 
+
+fn is_executable(filepath: &PathBuf)-> bool{
+   let attr = fs::metadata(&filepath);
+   
+   // 0o111 represents the execution bits for Owner (0o100), Group (0o010) and Other (0o001).
+   // mode + 0o111 sets all the read and Write bits to zero and one wherever mode is 1.
+   // setting that != 0 returns true if any of the bits are nonzero.
+   match attr{
+    Ok(attr) => attr.is_file() && ((attr.mode() & 0o111) != 0),
+    Err(e) => false,
+   }   
+}   
+
+
+fn search_for_executables(cmd: String, paths: Vec<PathBuf>)->Option<PathBuf>{
+    for path in &paths{
+        let filepath = path.join(&cmd);
+        if is_executable(&filepath){
+            return Some(filepath);
+        } 
+    }
+    None
+}
+
+
+fn get_path_env()-> Vec<PathBuf>{
+    match env::var_os("PATH"){
+        Some(path) => env::split_paths(&path).collect(),
+        None => Vec::new(), 
+    }
+}
+
 /// Execute the command
 fn run_command(cmd: Command){
     match cmd{
@@ -57,8 +91,15 @@ fn run_command(cmd: Command){
                                 {
                                     println!("{} is a shell builtin", arg);
                                 }
-                                else{ 
-                                    println!("{}: not found", arg)
+                                else
+                                { 
+                                    let paths = get_path_env();
+                                    let cmd = arg.clone();
+                                    let file = search_for_executables(arg.to_string(), paths);
+                                    match file{
+                                        Some(filepath) => println!("{} is {}", cmd.to_string(), filepath.display()),
+                                        None => println!("{}: not found", cmd),
+                                        }                                
                                 }
                             },
         Command::Error(arg) => println!("{}", arg),
