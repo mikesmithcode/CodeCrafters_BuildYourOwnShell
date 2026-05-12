@@ -119,8 +119,9 @@ fn handle_type(args: Vec<String>){
         }
 }
 
-fn handle_external(path: PathBuf, args: Vec<String>){
+fn handle_external(cmd: String, path: PathBuf, args: Vec<String>){
     let mut process_cmd = process::Command::new(path);
+    process_cmd.arg0(&cmd);
     process_cmd.args(args);
     let response = process_cmd.output().expect("failed to execute process");
     io::stdout().write_all(&response.stdout).expect("write process response to stdout");
@@ -137,7 +138,7 @@ fn run_command(cmd: Command){
                         _ => unreachable!("{} not implemented", cmd),
                     }                                
                 },
-        Command::External{cmd, path, args} => handle_external(path, args),
+        Command::External{cmd, path, args} => handle_external(cmd, path, args),
         Command::Error(msg) => println!("{}", msg),
   }
 
