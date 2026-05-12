@@ -14,7 +14,7 @@ enum Command{
     Exit,
     Echo(Vec<String>),
     Type(String),
-    Error,
+    Error(String),
 }
 
 
@@ -28,21 +28,27 @@ fn prompt()-> Result<Vec<String>, std::io::Error>{
     Ok(input)
 }
 
+/// Figures out which enum variant we have and adds args to variant if appropriate
 fn parse(mut buffer: Vec<String>)->Command{
-    if buffer.is_empty(){return Command::Error;}
+    if buffer.is_empty(){return Command::Error(String::new());}
+    
 
     let cmd_name = buffer.remove(0);
 
     match cmd_name.as_str(){
         "exit" => Command::Exit,
         "echo" => Command::Echo(buffer),
-        "type" => Command::Type(buffer.remove(0)),
-        _ => Command::Error,
+        "type" => if buffer.is_empty() {
+                        Command::Error("type: missing argument".to_string())
+                    } else {
+                        Command::Type(buffer.remove(0))
+                    }
+        _ => Command::Error(format!("{}: command not found", cmd_name)),
     }
 }
 
 
-
+/// Execute the command
 fn run_command(cmd: Command){
     match cmd{
         Command::Exit => std::process::exit(0),
@@ -55,7 +61,7 @@ fn run_command(cmd: Command){
                                     println!("{}: not found", arg)
                                 }
                             },
-        Command::Error => println!(""),
+        Command::Error(arg) => println!("{}", arg),
                         }
 
 }
