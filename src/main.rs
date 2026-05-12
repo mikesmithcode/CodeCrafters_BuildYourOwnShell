@@ -46,7 +46,7 @@ fn parse(mut buffer: Vec<String>)->Command{
 fn run_command(cmd: Command){
     match cmd{
         Command::Exit => std::process::exit(0),
-        Command::Echo(args) => println!("echo {}", args.join(" ")),
+        Command::Echo(args) => println!("{}", args.join(" ")),
         Command::Type(arg) => {if is_builtin(&arg)
                                 {
                                     println!("{} is a shell builtin", arg);
