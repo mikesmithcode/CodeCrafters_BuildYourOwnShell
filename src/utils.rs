@@ -5,6 +5,7 @@ use std::fs;
 #[cfg(unix)]
 use std::os::unix::fs::MetadataExt;
 
+
 pub fn get_path_env() -> Vec<PathBuf> {
     match env::var_os("PATH") {
         Some(path) => env::split_paths(&path).collect(),
