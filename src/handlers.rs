@@ -56,4 +56,5 @@ pub fn handle_external(cmd: String, path: PathBuf, args: Vec<String>) {
     process_cmd.arg0(&cmd);
     process_cmd.args(args);
     let response = process_cmd.output().expect("failed to execute process");
+    std::io::stdout().write_all(&response.stdout).unwrap();
 }
