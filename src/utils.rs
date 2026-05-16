@@ -13,6 +13,8 @@ pub fn get_path_env() -> Vec<PathBuf> {
     }
 }
 
+
+
 pub fn is_executable(filepath: &PathBuf) -> bool {
    let attr = fs::metadata(filepath);
    match attr {
@@ -33,3 +35,8 @@ pub fn search_for_executables(cmd: &str, paths: &Vec<PathBuf>) -> Option<PathBuf
     }
     None
 }
+
+
+
+
+
