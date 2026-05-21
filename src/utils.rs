@@ -14,8 +14,8 @@ pub fn get_path_env() -> Vec<PathBuf> {
 }
 
 ///Takes the input and expands special characters, treats anything in
-/// single quotes as a string literal.
-enum State { Normal, InSingle, InDouble }
+/// single or double quotes as a string literal.
+enum State { Normal, InSingle, InDouble, Escape }
 
 pub fn parse_string(cmd_buffer: String) -> Vec<String> {
     let mut tokens = Vec::new();
@@ -25,6 +25,7 @@ pub fn parse_string(cmd_buffer: String) -> Vec<String> {
     for ch in cmd_buffer.chars() {
         match state {
             State::Normal => match ch {
+                '\\' => state = State::Escape,
                 '\'' => state = State::InSingle,
                 '"'  => state = State::InDouble,
                 ' '  => { if !cur.is_empty() { tokens.push(cur.clone()); cur.clear(); } },
@@ -36,10 +37,10 @@ pub fn parse_string(cmd_buffer: String) -> Vec<String> {
             }
             State::InDouble => {
                 if ch == '"' { state = State::Normal } else {
-                    // in double-quotes you may still want to expand `$VAR` — handle here
                     cur.push(ch)
                 }
             }
+            State::Escape => {state = State::Normal; cur.push(ch)}
         }
     }
 
