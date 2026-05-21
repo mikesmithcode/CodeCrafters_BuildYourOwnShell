@@ -15,17 +15,19 @@ pub fn get_path_env() -> Vec<PathBuf> {
 
 ///Takes the input and expands special characters, treats anything in
 /// single or double quotes as a string literal.
+#[derive(Clone, Copy)]
 enum State { Normal, InSingle, InDouble, Escape }
 
 pub fn parse_string(cmd_buffer: String) -> Vec<String> {
     let mut tokens = Vec::new();
     let mut cur = String::new();
     let mut state = State::Normal;
+    let mut prev_state = State::Normal;
 
     for ch in cmd_buffer.chars() {
         match state {
             State::Normal => match ch {
-                '\\' => state = State::Escape,
+                '\\' => { prev_state = state; state = State::Escape },
                 '\'' => state = State::InSingle,
                 '"'  => state = State::InDouble,
                 ' '  => { if !cur.is_empty() { tokens.push(cur.clone()); cur.clear(); } },
@@ -33,20 +35,28 @@ pub fn parse_string(cmd_buffer: String) -> Vec<String> {
                 _    => cur.push(ch),
             },
             State::InSingle => {
-                if ch == '\'' { state = State::Normal } else { cur.push(ch) } // `"` is literal here
+                if ch == '\'' { state = State::Normal } else { cur.push(ch) }
             }
-            State::InDouble => {
-                if ch == '"' { state = State::Normal } else {
-                    cur.push(ch)
-                }
+            State::InDouble => match ch {
+                '\\' => { prev_state = state; state = State::Escape }, // allow escapes in double-quotes
+                '"'  => state = State::Normal,
+                _    => cur.push(ch),
+            },
+            State::Escape => {
+                // push escaped character and return to previous state
+                cur.push(ch);
+                state = prev_state;
             }
-            State::Escape => {state = State::Normal; cur.push(ch)}
         }
     }
+
+    // if we ended while in Escape, treat trailing backslash literally
+    if let State::Escape = state { cur.push('\\'); }
 
     if !cur.is_empty() { tokens.push(cur); }
     tokens
 }
+
 
 
 
