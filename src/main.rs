@@ -2,6 +2,7 @@
 use std::io::{self, Write};
 use std::path::PathBuf;
 
+
 // Declare the other files as modules
 mod utils;
 mod handlers;
@@ -15,6 +16,7 @@ pub fn is_builtin(cmd: &str) -> bool {
 /// Command
 ///
 /// Classifies type of input and stores key info for dealing with
+#[derive(Debug, PartialEq)]
 enum Command {
     Exit,
     Builtin { cmd: String, args: Vec<String> },
@@ -23,19 +25,24 @@ enum Command {
 }
 
 
+/// Prompt
+/// 
+/// Get input from user
 fn prompt() -> Result<Vec<String>, std::io::Error> {
     print!("$ ");
     io::stdout().flush().unwrap();
     let mut cmd_buffer = String::new();
     let _ = io::stdin().read_line(&mut cmd_buffer);
-    let input: Vec<String> = cmd_buffer.split_whitespace().map(|x| x.to_string()).collect();
+    let trimmed = cmd_buffer.trim_end();
+    let input: Vec<String> = utils::parse_string(trimmed.to_string());
     Ok(input)
 }
 
-/// parse prompt input
+/// classify_cmd
 ///
 /// the input from prompt will be vec![command, arg1, arg2 etc] where args are optional
-fn parse(mut buffer: Vec<String>) -> Command {
+/// The return classifies the type of command: Exit, Builtin, External, Error.
+fn classify_cmd(mut buffer: Vec<String>) -> Command {
     if buffer.is_empty() { return Command::Error(String::new()); }
     let cmd = buffer.remove(0);
     
@@ -56,6 +63,10 @@ fn parse(mut buffer: Vec<String>) -> Command {
     }
 }
 
+
+/// run_command
+/// 
+/// Distributes work to various handler functions based on classification
 fn run_command(cmd: Command) {
     match cmd {
         Command::Exit => std::process::exit(0),
@@ -75,10 +86,28 @@ fn run_command(cmd: Command) {
     }
 }
 
+///REPL loop
 fn main() {
+    
     loop {
         let buffer = prompt().expect("error with input");
-        let cmd = parse(buffer);
+        let cmd = classify_cmd(buffer);
         run_command(cmd);
     }
+}
+
+
+
+#[cfg(test)]
+mod tests{
+    use super::*;
+
+    #[test]
+    fn test_classify_cmd(){
+        assert_eq!(classify_cmd(vec![]), Command::Error(String::new()));
+        assert_eq!(classify_cmd(vec!["exit".to_string()]), Command::Exit);
+        assert_eq!(classify_cmd(vec!["echo".to_string(), "test".to_string()]), Command::Builtin {cmd: "echo".to_string(), args: vec!["test".to_string()]});
+        assert_eq!(classify_cmd(vec!["ls".to_string(), "test".to_string()]), Command::External { cmd: "ls".to_string(), path: PathBuf::from("/usr/bin/ls"), args: vec!["test".to_string()] });
+    }
+
 }

@@ -51,9 +51,7 @@ pub fn handle_cd(args: Vec<String>){
     
 }
 
-fn path_for_cd(arg: &str) -> Result<PathBuf, &'static str> {
-    
-    
+fn path_for_cd(arg: &str) -> Result<PathBuf, &'static str> {    
     let full_path = if arg.starts_with('/') {
         PathBuf::from(arg)
     } else if arg.starts_with('~'){
@@ -84,18 +82,7 @@ fn path_for_cd(arg: &str) -> Result<PathBuf, &'static str> {
 }
 
 
-    /*
-    
-    
-    
-
-    let home_dir= env::home_dir().expect("Error getting home_dir");
-    let mut current_dir = env::current_dir().expect("Error getting current dir");
-    &current_dir.pop();
-    let parent_dir = current_dir();
-
-    println!("{}", prefix);
-*/
+  
 
 ///-----------------------------------------------------------------
 /// External commands
@@ -131,7 +118,8 @@ mod tests {
 
 
     }
-    
+
+   
 
 
     #[test]
