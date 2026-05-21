@@ -15,31 +15,36 @@ pub fn get_path_env() -> Vec<PathBuf> {
 
 ///Takes the input and expands special characters, treats anything in
 /// single quotes as a string literal.
-pub fn parse_string(cmd_buffer: String)-> Vec<String>{
-    let mut output = Vec::new();
-    let mut part_string = String::new();
-    let mut expand: bool = true;
+enum State { Normal, InSingle, InDouble }
 
-    for c in cmd_buffer.chars(){
-        if expand == true{
-            match c{
-            '\'' => expand = false,  
-            '~' => part_string.push_str(&get_home_dir()),
-            ' ' => {if !part_string.is_empty(){output.push(part_string.clone()); part_string.clear()}},     
-            _=> part_string.push(c),
+pub fn parse_string(cmd_buffer: String) -> Vec<String> {
+    let mut tokens = Vec::new();
+    let mut cur = String::new();
+    let mut state = State::Normal;
+
+    for ch in cmd_buffer.chars() {
+        match state {
+            State::Normal => match ch {
+                '\'' => state = State::InSingle,
+                '"'  => state = State::InDouble,
+                ' '  => { if !cur.is_empty() { tokens.push(cur.clone()); cur.clear(); } },
+                '~' if cur.is_empty() => cur.push_str(&get_home_dir()),
+                _    => cur.push(ch),
+            },
+            State::InSingle => {
+                if ch == '\'' { state = State::Normal } else { cur.push(ch) } // `"` is literal here
             }
-        }else{
-            match c{
-                '\''=> expand=true,
-                _ => part_string.push(c),
+            State::InDouble => {
+                if ch == '"' { state = State::Normal } else {
+                    // in double-quotes you may still want to expand `$VAR` — handle here
+                    cur.push(ch)
+                }
             }
         }
-        
     }
-    
-    output.push(part_string);
 
-    output
+    if !cur.is_empty() { tokens.push(cur); }
+    tokens
 }
 
 
